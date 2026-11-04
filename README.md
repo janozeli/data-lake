@@ -40,7 +40,7 @@ latest items. Items can be up to 25 MiB.
 claude mcp add --transport http data-lake https://<your-worker>/mcp
 ```
 
-**Scripts and the browser extension.** Send the API token as a bearer token:
+**Scripts and the browser capture.** Send the API token as a bearer token:
 
 ```sh
 curl -X POST https://<your-worker>/v1/items \
@@ -55,6 +55,30 @@ curl https://<your-worker>/v1/items -H "Authorization: Bearer $LAKE_API_TOKEN"
 The source can also be passed as `?source=`. Lists accept `?limit=` and
 `?cursor=`. Add `?trash=true` to list or read the trash. Reading an item
 returns its raw bytes, with its metadata in `X-Lake-*` headers.
+
+## Browser capture
+
+[`userscript/data-lake.user.js`](userscript/data-lake.user.js) saves the page
+you are on to the lake with one gesture. It runs in
+[Violentmonkey](https://violentmonkey.github.io/) or any userscript manager
+that supports `GM_xmlhttpRequest`.
+
+- **claude.ai conversations** are saved whole, as JSON, exactly as claude.ai's
+  own API returns them: every branch, thinking, tool call and attachment.
+- **Any other page** is saved as a snapshot of its rendered HTML.
+
+The item's source is the page URL. Each save is a new snapshot, so saving the
+same conversation later records it again as it is then.
+
+1. Open the [raw script](https://raw.githubusercontent.com/janozeli/data-lake/main/userscript/data-lake.user.js);
+   Violentmonkey offers to install it.
+2. Save with **Alt+Shift+L**, the *Save this page to the lake* menu command,
+   or the *Save to lake* button on claude.ai conversations.
+3. On first use it asks for the worker URL and `LAKE_API_TOKEN`. Both are kept
+   in the script's storage; change them from the Violentmonkey menu.
+
+The claude.ai API it reads is internal and can change without notice. If it
+does, only capture breaks; what is already in the lake is unaffected.
 
 ## Deploy
 
