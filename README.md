@@ -77,7 +77,7 @@ same conversation later records it again as it is then.
    page was last saved from this browser.
 3. The first save opens the settings dialog: enter the worker URL and
    `LAKE_API_TOKEN`, and use *Test connection* to check them. Reopen it from
-   the Violentmonkey menu (*Settings…*), where you can also show the button
+   the gear next to the save button or the Violentmonkey menu (*Settings…*), where you can also show the button
    everywhere, only on claude.ai conversations, or never, and hide it on a
    single site.
 

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         data-lake capture
 // @namespace    https://github.com/janozeli/data-lake
-// @version      0.2.0
+// @version      0.2.1
 // @description  Save the page you are on to your data-lake: full claude.ai conversations, or a raw snapshot of any other page.
 // @author       janozeli
 // @license      MIT
@@ -244,12 +244,15 @@
 		@media (prefers-color-scheme: dark) {
 			.layer { --bg: #27272a; --fg: #f4f4f5; --muted: #a1a1aa; --line: #3f3f46; --accent: #60a5fa; }
 		}
-		.save { position: fixed; right: 16px; bottom: 16px; z-index: 2147483646; display: flex; align-items: center;
-			gap: 6px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 999px; background: var(--bg);
-			color: var(--fg); box-shadow: 0 2px 8px rgba(0,0,0,.15); cursor: pointer; opacity: .6;
-			transition: opacity .15s; }
-		.save:hover, .save:focus-visible, .save[data-state="busy"] { opacity: 1; }
-		.save[data-state="saved"] .dot { background: var(--ok); }
+		.dock { position: fixed; right: 16px; bottom: 16px; z-index: 2147483646; display: flex; gap: 4px;
+			opacity: .6; transition: opacity .15s; }
+		.dock:hover, .dock:focus-within, .dock[data-state="busy"] { opacity: 1; }
+		.dock button { display: flex; align-items: center; gap: 6px; padding: 6px 10px; border: 1px solid var(--line);
+			border-radius: 999px; background: var(--bg); color: var(--fg); box-shadow: 0 2px 8px rgba(0,0,0,.15);
+			cursor: pointer; }
+		.dock .gear { padding: 6px 8px; }
+		.gear svg { width: 14px; height: 14px; display: block; }
+		.dock[data-state="saved"] .dot { background: var(--ok); }
 		.save:disabled { cursor: progress; }
 		.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); flex: none; }
 		.toast { position: fixed; right: 16px; bottom: 60px; z-index: 2147483647; max-width: 360px; padding: 8px 12px;
@@ -273,9 +276,20 @@
 		.actions .plain:first-child { margin-right: auto; }
 	`;
 
-	let layer;
+	/** Events the page must not see while the user types in this script's UI. */
+	const GUARDED_EVENTS = ["keydown", "keyup", "keypress", "beforeinput", "input", "paste", "copy", "cut",
+		"compositionstart", "compositionupdate", "compositionend", "focusin", "focusout"];
 
-	/** All UI lives in one shadow root, so the page's styles can't reach it and captures can skip it. */
+	let layer;
+	let closeDialog = null;
+
+	/**
+	 * All UI lives in one shadow root, so the page's styles can't reach it and
+	 * captures can skip it. Pages such as claude.ai listen for typing and
+	 * pasting anywhere and pull them into their own text box, so keyboard and
+	 * clipboard events inside the UI are stopped at the window, before any
+	 * listener of the page runs. Default actions (typing, pasting) still happen.
+	 */
 	function ui() {
 		if (!layer) {
 			const host = element("div", { [UI_MARK]: true });
@@ -284,6 +298,14 @@
 			layer = element("div", { class: "layer" });
 			shadow.append(layer);
 			document.documentElement.append(host);
+
+			for (const type of GUARDED_EVENTS) {
+				window.addEventListener(type, (event) => {
+					if (!event.composedPath().includes(host)) return;
+					event.stopImmediatePropagation();
+					if (type === "keydown" && event.key === "Escape") closeDialog?.();
+				}, true);
+			}
 		}
 		return layer;
 	}
@@ -312,14 +334,8 @@
 
 			const close = (saved) => {
 				backdrop.remove();
-				document.removeEventListener("keydown", onKey, true);
+				closeDialog = null;
 				resolve(saved);
-			};
-			const onKey = (event) => {
-				if (event.key === "Escape") {
-					event.stopPropagation();
-					close(false);
-				}
 			};
 
 			const test = async () => {
@@ -355,14 +371,22 @@
 			const backdrop = element("div", { class: "backdrop", onclick: (event) => event.target === backdrop && close(false) }, [form]);
 
 			ui().append(backdrop);
-			document.addEventListener("keydown", onKey, true);
+			closeDialog = () => close(false);
 			(settings.url ? token : url).focus();
 		});
 	}
 
 	// ---- save button
 
-	let button;
+	const GEAR = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+		stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33
+		1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65
+		1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0
+		0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65
+		1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2
+		2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>`;
+
+	let dock;
 	let busy = false;
 
 	function buttonWanted() {
@@ -373,22 +397,29 @@
 
 	function syncButton() {
 		if (!buttonWanted()) {
-			button?.remove();
-			button = null;
+			dock?.remove();
+			dock = null;
 			return;
 		}
-		if (!button) {
-			button = element("button", { type: "button", class: "save", onclick: saveToLake }, [
-				element("span", { class: "dot" }),
-				element("span", { class: "label" }),
+		if (!dock) {
+			const gear = element("button", { type: "button", class: "gear", title: "data-lake settings",
+				"aria-label": "data-lake settings", onclick: () => openSettings() });
+			gear.innerHTML = GEAR;
+			dock = element("div", { class: "dock" }, [
+				element("button", { type: "button", class: "save", onclick: saveToLake }, [
+					element("span", { class: "dot" }),
+					element("span", { class: "label" }),
+				]),
+				gear,
 			]);
-			ui().append(button);
+			ui().append(dock);
 		}
+		const button = dock.querySelector(".save");
 		const savedAt = history.get(currentSource());
 		const what = claudeConversationId() ? "this conversation" : "this page";
 		const label = busy ? "Saving…" : savedAt ? `Saved ${formatAgo(savedAt)}` : "Save to lake";
 		button.querySelector(".label").textContent = label;
-		button.dataset.state = busy ? "busy" : savedAt ? "saved" : "idle";
+		dock.dataset.state = busy ? "busy" : savedAt ? "saved" : "idle";
 		button.disabled = busy;
 		button.title = savedAt
 			? `Saved ${new Date(savedAt).toLocaleString()}. Click to save ${what} again (Alt+Shift+L).`
