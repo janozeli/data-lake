@@ -1,0 +1,26 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "data-lake",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat"],
+
+  // Storage for the lake. Left without a bucket name / namespace id so that
+  // `wrangler deploy` provisions them on first deploy and reuses them after.
+  "r2_buckets": [{ "binding": "LAKE" }],
+  "kv_namespaces": [{ "binding": "OAUTH_KV" }],
+
+  // Daily purge of items that have been in the trash for 30 days.
+  "triggers": { "crons": ["17 3 * * *"] },
+
+  "vars": {
+    // Comma-separated GitHub logins allowed to sign in over MCP.
+    "ALLOWED_GITHUB_LOGINS": "janozeli"
+  },
+
+  "secrets": {
+    "required": ["OAUTH_CLIENT_ID", "OAUTH_CLIENT_SECRET", "LAKE_API_TOKEN"]
+  },
+
+  "observability": { "enabled": true }
+}

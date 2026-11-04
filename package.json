@@ -1,0 +1,29 @@
+{
+  "name": "data-lake",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A raw, append-only store for your conversations, reachable from Claude over MCP.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "test": "vitest run",
+    "typecheck": "npm run types && tsc --noEmit",
+    "types": "wrangler types --env-interface Env worker-configuration.d.ts"
+  },
+  "dependencies": {
+    "@cloudflare/workers-oauth-provider": "^1.2.4",
+    "@modelcontextprotocol/server": "^2.4.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-plugin": "^1.5.1",
+    "typescript": "^6.0.3",
+    "vitest": "^5.1.0",
+    "wrangler": "^4.157.0"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
