@@ -1,5 +1,5 @@
 /**
- * REST API over the lake, for scripts and the browser extension.
+ * REST API over the lake, for scripts and the browser capture.
  *
  *   POST   /v1/items                 save the request body as a new item
  *   GET    /v1/items                 list items (?trash=true, ?limit=, ?cursor=)
