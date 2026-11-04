@@ -58,8 +58,10 @@ returns its raw bytes, with its metadata in `X-Lake-*` headers.
 
 ## Deploy
 
-Deploys run from GitHub Actions on every push to `main`. The R2 bucket and the
-KV namespace used for sign-in are created on the first deploy.
+Deploys run from GitHub Actions on every push to `main`. Pull requests from
+this repository that are not drafts merge themselves once tests pass, and the
+merge is deployed. The R2 bucket and the KV namespace used for sign-in are
+created on the first deploy.
 
 1. **Cloudflare.** Enable R2, then create an API token from the
    *Edit Cloudflare Workers* template with *Workers R2 Storage: Edit* added.
