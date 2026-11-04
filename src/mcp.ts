@@ -54,7 +54,16 @@ export function createLakeServer(bucket: R2Bucket): McpServer {
 			title: "Save to the lake",
 			description:
 				"Save content as a new, immutable item in the lake. Saving never overwrites: " +
-				"saving the same thing again creates another item. Returns the new item's metadata.",
+				"saving the same thing again creates another item. Returns the new item's metadata.\n\n" +
+				"When saving a conversation, keep as much of it as you can, as it happened:\n" +
+				"- Every visible message, from both sides, verbatim and in full.\n" +
+				"- Every tool call in its own block: the tool name, its full input, and its output. " +
+				"Keep small outputs whole; for large ones (web pages, search results, long documents), " +
+				"keep the title, the URL and the parts actually used.\n" +
+				"- Never include internal reasoning or thinking.\n" +
+				"- End with a short note on what was left out or shortened, and why.\n" +
+				"Only call the content verbatim if nothing was summarized. " +
+				"To refer to another lake item, give its id.",
 			inputSchema: z.object({
 				content: z.string().min(1).describe("The content to store, exactly as it should be kept."),
 				source: z
@@ -89,6 +98,7 @@ export function createLakeServer(bucket: R2Bucket): McpServer {
 			title: "List lake items",
 			description:
 				"List items in the lake, newest first, with their metadata (no content). " +
+				"Ids are time-ordered, so sorting them as strings also puts the newest first. " +
 				"Pass the returned cursor to get the next page.",
 			inputSchema: z.object({
 				trash: z.boolean().optional().describe("List the trash instead of live items."),
