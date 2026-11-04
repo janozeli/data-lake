@@ -71,11 +71,15 @@ The item's source is the page URL. Each save is a new snapshot, so saving the
 same conversation later records it again as it is then.
 
 1. Open the [raw script](https://raw.githubusercontent.com/janozeli/data-lake/main/userscript/data-lake.user.js);
-   Violentmonkey offers to install it.
-2. Save with **Alt+Shift+L**, the *Save this page to the lake* menu command,
-   or the *Save to lake* button on claude.ai conversations.
-3. On first use it asks for the worker URL and `LAKE_API_TOKEN`. Both are kept
-   in the script's storage; change them from the Violentmonkey menu.
+   Violentmonkey offers to install it, and keeps it updated.
+2. Save with the small button in the bottom-right corner, **Alt+Shift+L**, or
+   the *Save this page to the lake* menu command. The button shows when the
+   page was last saved from this browser.
+3. The first save opens the settings dialog: enter the worker URL and
+   `LAKE_API_TOKEN`, and use *Test connection* to check them. Reopen it from
+   the Violentmonkey menu (*Settings…*), where you can also show the button
+   everywhere, only on claude.ai conversations, or never, and hide it on a
+   single site.
 
 The claude.ai API it reads is internal and can change without notice. If it
 does, only capture breaks; what is already in the lake is unaffected.
